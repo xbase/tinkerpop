@@ -38,6 +38,7 @@ import static org.apache.tinkerpop.gremlin.structure.io.IoCore.gryo;
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
+// 测试、学习目的
 public final class TinkerFactory {
 
     private TinkerFactory() {}

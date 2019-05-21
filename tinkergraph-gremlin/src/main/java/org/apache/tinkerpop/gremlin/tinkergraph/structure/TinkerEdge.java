@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
+// 边对象
 public final class TinkerEdge extends TinkerElement implements Edge {
 
     protected Map<String, Property> properties;
@@ -48,50 +49,53 @@ public final class TinkerEdge extends TinkerElement implements Edge {
         super(id, label);
         this.outVertex = outVertex;
         this.inVertex = inVertex;
-        TinkerHelper.autoUpdateIndex(this, T.label.getAccessor(), this.label, null);
+        TinkerHelper.autoUpdateIndex(this, T.label.getAccessor(), this.label, null); // 更新索引？
     }
 
     @Override
-    public <V> Property<V> property(final String key, final V value) {
+    public <V> Property<V> property(final String key, final V value) { // 添加属性
         if (this.removed) throw elementAlreadyRemoved(Edge.class, id);
         ElementHelper.validateProperty(key, value);
         final Property oldProperty = super.property(key);
         final Property<V> newProperty = new TinkerProperty<>(this, key, value);
         if (null == this.properties) this.properties = new HashMap<>();
         this.properties.put(key, newProperty);
-        TinkerHelper.autoUpdateIndex(this, key, value, oldProperty.isPresent() ? oldProperty.value() : null);
+        TinkerHelper.autoUpdateIndex(this, key, value, oldProperty.isPresent() ? oldProperty.value() : null); // 更新索引？
         return newProperty;
 
     }
 
     @Override
-    public <V> Property<V> property(final String key) {
+    public <V> Property<V> property(final String key) { // 获取属性值
         return null == this.properties ? Property.<V>empty() : this.properties.getOrDefault(key, Property.<V>empty());
     }
 
     @Override
-    public Set<String> keys() {
+    public Set<String> keys() { // 获取所有的属性名
         return null == this.properties ? Collections.emptySet() : this.properties.keySet();
     }
 
+
+    // 移除本条边
+    // 一条边保存在三个地方：出点、入点、全部边Map
     @Override
     public void remove() {
         final TinkerVertex outVertex = (TinkerVertex) this.outVertex;
         final TinkerVertex inVertex = (TinkerVertex) this.inVertex;
 
         if (null != outVertex && null != outVertex.outEdges) {
-            final Set<Edge> edges = outVertex.outEdges.get(this.label());
+            final Set<Edge> edges = outVertex.outEdges.get(this.label()); // 出点中所有为此label的边
             if (null != edges)
                 edges.remove(this);
         }
         if (null != inVertex && null != inVertex.inEdges) {
-            final Set<Edge> edges = inVertex.inEdges.get(this.label());
+            final Set<Edge> edges = inVertex.inEdges.get(this.label()); // 入点中所有为此label的边
             if (null != edges)
                 edges.remove(this);
         }
 
-        TinkerHelper.removeElementIndex(this);
-        ((TinkerGraph) this.graph()).edges.remove(this.id());
+        TinkerHelper.removeElementIndex(this); // 更新索引？
+        ((TinkerGraph) this.graph()).edges.remove(this.id()); // 移除边对象
         this.properties = null;
         this.removed = true;
     }
@@ -131,7 +135,7 @@ public final class TinkerEdge extends TinkerElement implements Edge {
     }
 
     @Override
-    public <V> Iterator<Property<V>> properties(final String... propertyKeys) {
+    public <V> Iterator<Property<V>> properties(final String... propertyKeys) { // 获取多个属性
         if (null == this.properties) return Collections.emptyIterator();
         if (propertyKeys.length == 1) {
             final Property<V> property = this.properties.get(propertyKeys[0]);

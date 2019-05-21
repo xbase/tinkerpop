@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
+// VertexProperty 定义了Cardinality
 public class TinkerVertexProperty<V> extends TinkerElement implements VertexProperty<V> {
 
     protected Map<String, Property> properties;
@@ -57,7 +58,7 @@ public class TinkerVertexProperty<V> extends TinkerElement implements VertexProp
         this.key = key;
         this.value = value;
         ElementHelper.legalPropertyKeyValueArray(propertyKeyValues);
-        ElementHelper.attachProperties(this, propertyKeyValues);
+        ElementHelper.attachProperties(this, propertyKeyValues); // 设置属性
     }
 
     /**
@@ -115,7 +116,7 @@ public class TinkerVertexProperty<V> extends TinkerElement implements VertexProp
     }
 
     @Override
-    public <U> Property<U> property(final String key, final U value) {
+    public <U> Property<U> property(final String key, final U value) { // 添加属性
         if (this.removed) throw elementAlreadyRemoved(VertexProperty.class, id);
         final Property<U> property = new TinkerProperty<>(this, key, value);
         if (this.properties == null) this.properties = new HashMap<>();
@@ -131,17 +132,17 @@ public class TinkerVertexProperty<V> extends TinkerElement implements VertexProp
     @Override
     public void remove() {
         if (null != this.vertex.properties && this.vertex.properties.containsKey(this.key)) {
-            this.vertex.properties.get(this.key).remove(this);
+            this.vertex.properties.get(this.key).remove(this); // 从vertex中移除这个属性
             if (this.vertex.properties.get(this.key).size() == 0) {
                 this.vertex.properties.remove(this.key);
                 TinkerHelper.removeIndex(this.vertex, this.key, this.value);
             }
             final AtomicBoolean delete = new AtomicBoolean(true);
             this.vertex.properties(this.key).forEachRemaining(property -> {
-                if (property.value().equals(this.value))
+                if (property.value().equals(this.value)) // 是否还有等于此value的属性
                     delete.set(false);
             });
-            if (delete.get()) TinkerHelper.removeIndex(this.vertex, this.key, this.value);
+            if (delete.get()) TinkerHelper.removeIndex(this.vertex, this.key, this.value); // 维护索引
             this.properties = null;
             this.removed = true;
         }

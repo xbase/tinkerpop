@@ -109,12 +109,14 @@ public final class TinkerGraph implements Graph {
      */
     private TinkerGraph(final Configuration configuration) {
         this.configuration = configuration;
+        // vertexId、edgeId、vertexPropertyId默认为ANY
         vertexIdManager = selectIdManager(configuration, GREMLIN_TINKERGRAPH_VERTEX_ID_MANAGER, Vertex.class);
         edgeIdManager = selectIdManager(configuration, GREMLIN_TINKERGRAPH_EDGE_ID_MANAGER, Edge.class);
         vertexPropertyIdManager = selectIdManager(configuration, GREMLIN_TINKERGRAPH_VERTEX_PROPERTY_ID_MANAGER, VertexProperty.class);
         defaultVertexPropertyCardinality = VertexProperty.Cardinality.valueOf(
                 configuration.getString(GREMLIN_TINKERGRAPH_DEFAULT_VERTEX_PROPERTY_CARDINALITY, VertexProperty.Cardinality.single.name()));
 
+        // 当需要持久化时，会配置这两个参数
         graphLocation = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_LOCATION, null);
         graphFormat = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_FORMAT, null);
 
@@ -122,7 +124,7 @@ public final class TinkerGraph implements Graph {
             throw new IllegalStateException(String.format("The %s and %s must both be specified if either is present",
                     GREMLIN_TINKERGRAPH_GRAPH_LOCATION, GREMLIN_TINKERGRAPH_GRAPH_FORMAT));
 
-        if (graphLocation != null) loadGraph();
+        if (graphLocation != null) loadGraph(); // 加载文件，并反序列化
     }
 
     /**
@@ -158,14 +160,14 @@ public final class TinkerGraph implements Graph {
 
     @Override
     public Vertex addVertex(final Object... keyValues) {
-        ElementHelper.legalPropertyKeyValueArray(keyValues);
-        Object idValue = vertexIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
-        final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
+        ElementHelper.legalPropertyKeyValueArray(keyValues); // 检查KV对
+        Object idValue = vertexIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null)); // 找ID
+        final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL); // 找Label
 
         if (null != idValue) {
             if (this.vertices.containsKey(idValue))
                 throw Exceptions.vertexWithIdAlreadyExists(idValue);
-        } else {
+        } else { // ID == null, 则自动生成一个
             idValue = vertexIdManager.getNextId(this);
         }
 
@@ -250,6 +252,7 @@ public final class TinkerGraph implements Graph {
         return createElementIterator(Edge.class, edges, edgeIdManager, edgeIds);
     }
 
+    // 加载文件，并反序列化
     private void loadGraph() {
         final File f = new File(graphLocation);
         if (f.exists() && f.isFile()) {
@@ -521,7 +524,7 @@ public final class TinkerGraph implements Graph {
      * Construct an {@link TinkerGraph.IdManager} from the TinkerGraph {@code Configuration}.
      */
     private static IdManager<?> selectIdManager(final Configuration config, final String configKey, final Class<? extends Element> clazz) {
-        final String vertexIdManagerConfigValue = config.getString(configKey, DefaultIdManager.ANY.name());
+        final String vertexIdManagerConfigValue = config.getString(configKey, DefaultIdManager.ANY.name()); // 默认为ANY
         try {
             return DefaultIdManager.valueOf(vertexIdManagerConfigValue);
         } catch (IllegalArgumentException iae) {
@@ -542,7 +545,7 @@ public final class TinkerGraph implements Graph {
      *
      * @param <T> the id type
      */
-    public interface IdManager<T> {
+    public interface IdManager<T> { // 主要负责ID的生成
         /**
          * Generate an identifier which should be unique to the {@link TinkerGraph} instance.
          */
@@ -569,12 +572,12 @@ public final class TinkerGraph implements Graph {
          */
         LONG {
             @Override
-            public Long getNextId(final TinkerGraph graph) {
+            public Long getNextId(final TinkerGraph graph) { // 自增long型
                 return Stream.generate(() -> (graph.currentId.incrementAndGet())).filter(id -> !graph.vertices.containsKey(id) && !graph.edges.containsKey(id)).findAny().get();
             }
 
             @Override
-            public Object convert(final Object id) {
+            public Object convert(final Object id) { // long型
                 if (null == id)
                     return null;
                 else if (id instanceof Long)
@@ -588,7 +591,7 @@ public final class TinkerGraph implements Graph {
             }
 
             @Override
-            public boolean allow(final Object id) {
+            public boolean allow(final Object id) { // 允许字符换或者long型
                 return id instanceof Number || id instanceof String;
             }
         },
@@ -599,7 +602,7 @@ public final class TinkerGraph implements Graph {
          */
         INTEGER {
             @Override
-            public Integer getNextId(final TinkerGraph graph) {
+            public Integer getNextId(final TinkerGraph graph) { // int型
                 return Stream.generate(() -> (graph.currentId.incrementAndGet())).map(Long::intValue).filter(id -> !graph.vertices.containsKey(id) && !graph.edges.containsKey(id)).findAny().get();
             }
 
@@ -629,7 +632,7 @@ public final class TinkerGraph implements Graph {
          */
         UUID {
             @Override
-            public UUID getNextId(final TinkerGraph graph) {
+            public UUID getNextId(final TinkerGraph graph) { // java UUID
                 return java.util.UUID.randomUUID();
             }
 
@@ -657,7 +660,7 @@ public final class TinkerGraph implements Graph {
          * trying to request it with an {@code Integer} will have no effect. Also, like the original
          * {@link TinkerGraph}, it will generate {@link Long} values for identifiers.
          */
-        ANY {
+        ANY { // 和LONG策略类似，只是convert方法不工作
             @Override
             public Long getNextId(final TinkerGraph graph) {
                 return Stream.generate(() -> (graph.currentId.incrementAndGet())).filter(id -> !graph.vertices.containsKey(id) && !graph.edges.containsKey(id)).findAny().get();

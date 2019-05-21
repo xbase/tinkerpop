@@ -24,6 +24,7 @@ import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
+// 点对象和边对象的父类
 public abstract class TinkerElement implements Element {
 
     protected final Object id;

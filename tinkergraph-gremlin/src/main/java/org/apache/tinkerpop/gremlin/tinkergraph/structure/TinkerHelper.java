@@ -183,7 +183,7 @@ public final class TinkerHelper {
         final List<Vertex> vertices = new ArrayList<>();
         if (direction.equals(Direction.OUT) || direction.equals(Direction.BOTH)) {
             if (vertex.outEdges != null) {
-                if (edgeLabels.length == 0)
+                if (edgeLabels.length == 0) // 所有出边关联的点
                     vertex.outEdges.values().forEach(set -> set.forEach(edge -> vertices.add(((TinkerEdge) edge).inVertex)));
                 else if (edgeLabels.length == 1)
                     vertex.outEdges.getOrDefault(edgeLabels[0], Collections.emptySet()).forEach(edge -> vertices.add(((TinkerEdge) edge).inVertex));
@@ -193,7 +193,7 @@ public final class TinkerHelper {
         }
         if (direction.equals(Direction.IN) || direction.equals(Direction.BOTH)) {
             if (vertex.inEdges != null) {
-                if (edgeLabels.length == 0)
+                if (edgeLabels.length == 0) // 所有入边关联的点
                     vertex.inEdges.values().forEach(set -> set.forEach(edge -> vertices.add(((TinkerEdge) edge).outVertex)));
                 else if (edgeLabels.length == 1)
                     vertex.inEdges.getOrDefault(edgeLabels[0], Collections.emptySet()).forEach(edge -> vertices.add(((TinkerEdge) edge).outVertex));

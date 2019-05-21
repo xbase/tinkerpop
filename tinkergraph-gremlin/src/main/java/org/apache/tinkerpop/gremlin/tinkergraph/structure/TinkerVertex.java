@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
+// 点对象
 public final class TinkerVertex extends TinkerElement implements Vertex {
 
     protected Map<String, List<VertexProperty>> properties;
@@ -71,7 +72,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
         } else {
             if (this.properties != null && this.properties.containsKey(key)) {
                 final List<VertexProperty> list = (List) this.properties.get(key);
-                if (list.size() > 1)
+                if (list.size() > 1) // map的value是list，但却不允许list有多个元素？
                     throw Vertex.Exceptions.multiplePropertiesExistForProvidedKey(key);
                 else
                     return list.get(0);
@@ -105,7 +106,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
             list.add(vertexProperty);
             this.properties.put(key, list);
             TinkerHelper.autoUpdateIndex(this, key, value, null);
-            ElementHelper.attachProperties(vertexProperty, keyValues);
+            ElementHelper.attachProperties(vertexProperty, keyValues); // 设置属性
             return vertexProperty;
         }
     }
@@ -118,6 +119,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
                 this.properties.keySet();
     }
 
+    // 添加边，keyValues为边属性
     @Override
     public Edge addEdge(final String label, final Vertex vertex, final Object... keyValues) {
         if (null == vertex) throw Graph.Exceptions.argumentCanNotBeNull("vertex");
@@ -129,10 +131,10 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
     public void remove() {
         final List<Edge> edges = new ArrayList<>();
         this.edges(Direction.BOTH).forEachRemaining(edges::add);
-        edges.stream().filter(edge -> !((TinkerEdge) edge).removed).forEach(Edge::remove);
+        edges.stream().filter(edge -> !((TinkerEdge) edge).removed).forEach(Edge::remove); // 所有的边对象中移除此点
         this.properties = null;
         TinkerHelper.removeElementIndex(this);
-        this.graph.vertices.remove(this.id);
+        this.graph.vertices.remove(this.id); // 移除此点
         this.removed = true;
     }
 
@@ -141,6 +143,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
         return StringFactory.vertexString(this);
     }
 
+    // 按条件获取此点的边
     @Override
     public Iterator<Edge> edges(final Direction direction, final String... edgeLabels) {
         final Iterator<Edge> edgeIterator = (Iterator) TinkerHelper.getEdges(this, direction, edgeLabels);
@@ -149,6 +152,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
                 edgeIterator;
     }
 
+    // 按条件获取此点关联的点
     @Override
     public Iterator<Vertex> vertices(final Direction direction, final String... edgeLabels) {
         return TinkerHelper.inComputerMode(this.graph) ?
@@ -160,6 +164,7 @@ public final class TinkerVertex extends TinkerElement implements Vertex {
                 (Iterator) TinkerHelper.getVertices(this, direction, edgeLabels);
     }
 
+    // 通过key列表获取属性
     @Override
     public <V> Iterator<VertexProperty<V>> properties(final String... propertyKeys) {
         if (this.removed) return Collections.emptyIterator();

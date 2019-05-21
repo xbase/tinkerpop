@@ -46,6 +46,12 @@ final class TinkerIndex<T extends Element> {
         this.indexClass = indexClass;
     }
 
+    /**
+     * 添加到index map
+     * @param key      属性名
+     * @param value    属性值
+     * @param element  点/边对象
+     */
     protected void put(final String key, final Object value, final T element) {
         Map<Object, Set<T>> keyMap = this.index.get(key);
         if (null == keyMap) {
@@ -134,8 +140,8 @@ final class TinkerIndex<T extends Element> {
 
         (Vertex.class.isAssignableFrom(this.indexClass) ?
                 this.graph.vertices.values().<T>parallelStream() :
-                this.graph.edges.values().<T>parallelStream())
-                .map(e -> new Object[]{((T) e).property(key), e})
+                this.graph.edges.values().<T>parallelStream())  // 点还是边？
+                .map(e -> new Object[]{((T) e).property(key), e}) // a[0]：属性值  a[1]：点/边对象
                 .filter(a -> ((Property) a[0]).isPresent())
                 .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
     }
