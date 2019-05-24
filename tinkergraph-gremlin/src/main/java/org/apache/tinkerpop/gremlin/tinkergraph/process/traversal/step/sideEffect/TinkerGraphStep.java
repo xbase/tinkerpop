@@ -59,6 +59,7 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
         this.setIteratorSupplier(() -> (Iterator<E>) (Vertex.class.isAssignableFrom(this.returnClass) ? this.vertices() : this.edges()));
     }
 
+    // 按条件获取边
     private Iterator<? extends Edge> edges() {
         final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
         final HasContainer indexedContainer = getIndexKey(Edge.class);
@@ -71,10 +72,11 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
             return null == indexedContainer ?
                     this.iteratorList(graph.edges()) :
                     TinkerHelper.queryEdgeIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).stream()
-                            .filter(edge -> HasContainer.testAll(edge, this.hasContainers))
+                            .filter(edge -> HasContainer.testAll(edge, this.hasContainers)) // 过滤条件
                             .collect(Collectors.<Edge>toList()).iterator();
     }
 
+    // 按条件获取点
     private Iterator<? extends Vertex> vertices() {
         final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
         final HasContainer indexedContainer = getIndexKey(Vertex.class);

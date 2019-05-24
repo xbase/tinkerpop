@@ -304,9 +304,9 @@ public final class TinkerGraph implements Graph {
                                                                   final IdManager idManager,
                                                                   final Object... ids) {
         final Iterator<T> iterator;
-        if (0 == ids.length) {
+        if (0 == ids.length) { // 获取所有的点或边对象
             iterator = elements.values().iterator();
-        } else {
+        } else { // 获取指定id的点或边对象
             final List<Object> idList = Arrays.asList(ids);
             validateHomogenousIds(idList);
 

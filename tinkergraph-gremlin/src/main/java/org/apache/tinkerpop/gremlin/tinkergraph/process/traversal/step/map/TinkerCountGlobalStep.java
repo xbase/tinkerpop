@@ -51,8 +51,8 @@ public final class TinkerCountGlobalStep<S extends Element> extends AbstractStep
             this.done = true;
             final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
             return this.getTraversal().getTraverserGenerator().generate(Vertex.class.isAssignableFrom(this.elementClass) ?
-                            (long) TinkerHelper.getVertices(graph).size() :
-                            (long) TinkerHelper.getEdges(graph).size(),
+                            (long) TinkerHelper.getVertices(graph).size() : // 点的个数
+                            (long) TinkerHelper.getEdges(graph).size(), // 边的个数
                     (Step) this, 1L);
         } else
             throw FastNoSuchElementException.instance();
